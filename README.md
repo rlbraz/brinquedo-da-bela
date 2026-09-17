@@ -19,3 +19,6 @@ npm run build:desktop
 
 As falas são geradas localmente pelo Kokoro com a voz brasileira feminina `pf_dora`, sem chamadas de voz em tempo de execução.
 
+
+Site publicado: https://brinquedo-da-bela.pages.dev/
+
