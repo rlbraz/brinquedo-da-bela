@@ -393,6 +393,7 @@
         let lastIndex = -1;
         let lastPress = 0;
         let activeSample = null;
+        let activeVoice = null;
         let feminineVoice = null;
 
         const sampleSources = {
@@ -413,19 +414,27 @@
           return [name, audio];
         }));
 
+        const voiceKeys = ['welcome', 'lion', 'dog', 'cat', 'cow', 'frog', 'bird', 'duck', 'elephant', 'owl', 'rain', 'ocean', 'rainbow'];
+        const voiceSamples = Object.fromEntries(voiceKeys.map(name => {
+          const audio = new Audio(`./voice/${name}.mp3`);
+          audio.preload = 'auto';
+          audio.volume = .92;
+          return [name, audio];
+        }));
+
         const scenes = [
-          { icon: '🦁', text: 'Rooar! O leão da Bela!', colors: ['#ffc867', '#ff927a', '#fff0a8'], sample: 'lion', sound: lion },
-          { icon: '🐶', text: 'Au, au! Oi, Bela!', colors: ['#a5e8f2', '#79d6bf', '#fff1a3'], sample: 'dog', sound: dog },
-          { icon: '🐱', text: 'Miau! Um carinho!', colors: ['#ffc1c8', '#ffd995', '#bcece7'], sample: 'cat', sound: cat },
-          { icon: '🐮', text: 'Muuu! Muito bem!', colors: ['#c7efb0', '#8ee1dc', '#ffe387'], sample: 'cow', sound: cow },
-          { icon: '🐸', text: 'Coax, coax! Pula, Bela!', colors: ['#9bea9b', '#70d8bf', '#fff0a3'], sound: frog },
-          { icon: '🐤', text: 'Piu-piu! Que alegria!', colors: ['#fff179', '#ffbd74', '#a8e8f2'], sample: 'bird', sound: bird },
-          { icon: '🦆', text: 'Quá-quá! Olá, Bela!', colors: ['#ffe58b', '#82dce4', '#b8edb5'], sample: 'geese', sound: duck },
-          { icon: '🐘', text: 'Pruuu! Viva a Bela!', colors: ['#a9cbff', '#beb8f5', '#ffe7a1'], sound: elephant },
-          { icon: '🦉', text: 'Uhuu! Bela esperta!', colors: ['#d5b8ff', '#8dded9', '#ffd39c'], sample: 'owl', sound: owl },
-          { icon: '🌧️', text: 'Chuvinha gostosa!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sample: 'nature', sound: rain },
-          { icon: '🌊', text: 'O mar faz shhh...', colors: ['#7edbe8', '#66bde8', '#bff3df'], sample: 'nature', sound: ocean },
-          { icon: '🌈', text: 'Um arco-íris pra Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow }
+          { icon: '🦁', voice: 'lion', text: 'Rooar! O leão da Bela!', colors: ['#ffc867', '#ff927a', '#fff0a8'], sample: 'lion', sound: lion },
+          { icon: '🐶', voice: 'dog', text: 'Au, au! Oi, Bela!', colors: ['#a5e8f2', '#79d6bf', '#fff1a3'], sample: 'dog', sound: dog },
+          { icon: '🐱', voice: 'cat', text: 'Miau! Um carinho!', colors: ['#ffc1c8', '#ffd995', '#bcece7'], sample: 'cat', sound: cat },
+          { icon: '🐮', voice: 'cow', text: 'Muuu! Muito bem!', colors: ['#c7efb0', '#8ee1dc', '#ffe387'], sample: 'cow', sound: cow },
+          { icon: '🐸', voice: 'frog', text: 'Coax, coax! Pula, Bela!', colors: ['#9bea9b', '#70d8bf', '#fff0a3'], sound: frog },
+          { icon: '🐤', voice: 'bird', text: 'Piu-piu! Que alegria!', colors: ['#fff179', '#ffbd74', '#a8e8f2'], sample: 'bird', sound: bird },
+          { icon: '🦆', voice: 'duck', text: 'Quá-quá! Olá, Bela!', colors: ['#ffe58b', '#82dce4', '#b8edb5'], sample: 'geese', sound: duck },
+          { icon: '🐘', voice: 'elephant', text: 'Pruuu! Viva a Bela!', colors: ['#a9cbff', '#beb8f5', '#ffe7a1'], sound: elephant },
+          { icon: '🦉', voice: 'owl', text: 'Uhuu! Bela esperta!', colors: ['#d5b8ff', '#8dded9', '#ffd39c'], sample: 'owl', sound: owl },
+          { icon: '🌧️', voice: 'rain', text: 'Chuvinha gostosa!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sample: 'nature', sound: rain },
+          { icon: '🌊', voice: 'ocean', text: 'O mar faz shhh...', colors: ['#7edbe8', '#66bde8', '#bff3df'], sample: 'nature', sound: ocean },
+          { icon: '🌈', voice: 'rainbow', text: 'Um arco-íris pra Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow }
         ];
 
         function ensureAudio() {
@@ -525,9 +534,8 @@
             || null;
         }
 
-        function speak(text) {
+        function fallbackSpeech(text) {
           if (!('speechSynthesis' in window)) return;
-          speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'pt-BR';
           utterance.rate = .9;
@@ -536,6 +544,22 @@
           if (!feminineVoice) chooseFeminineVoice();
           if (feminineVoice) utterance.voice = feminineVoice;
           speechSynthesis.speak(utterance);
+        }
+
+        function speak(voiceKey, text) {
+          if ('speechSynthesis' in window) speechSynthesis.cancel();
+          if (activeVoice) {
+            activeVoice.pause();
+            activeVoice.currentTime = 0;
+          }
+          const voice = voiceSamples[voiceKey];
+          if (!voice) {
+            fallbackSpeech(text);
+            return;
+          }
+          activeVoice = voice;
+          voice.currentTime = 0;
+          voice.play().catch(() => fallbackSpeech(text));
         }
 
         function requestFullScreen() {
@@ -594,7 +618,7 @@
           reaction.classList.add('pop');
           playSceneSound(scene);
           setTimeout(() => {
-            if (!closedState && message.textContent === scene.text) speak(scene.text);
+            if (!closedState && message.textContent === scene.text) speak(scene.voice, scene.text);
           }, scene.sample ? 260 : 120);
           sparkle();
         }
@@ -607,6 +631,10 @@
           if (activeSample) {
             activeSample.pause();
             activeSample.currentTime = 0;
+          }
+          if (activeVoice) {
+            activeVoice.pause();
+            activeVoice.currentTime = 0;
           }
           if (audioContext) audioContext.suspend();
           if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -651,7 +679,7 @@
           if (!closedState && event.target !== closeButton) {
             ensureAudio();
             requestFullScreen();
-            if (!started) speak('Oi, Bela! Aperte qualquer tecla para brincar!');
+            if (!started) speak('welcome', 'Oi, Bela! Aperte qualquer tecla para brincar!');
           }
         }, { once: true });
       })();
