@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a6f75" />
+    <meta name="description" content="Um brinquedo de teclado cheio de bichinhos, sons e carinho para a Bela." />
+    <title>Brinquedo da Bela</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230a6f75'/%3E%3Ccircle cx='32' cy='34' r='20' fill='%23ffd85a'/%3E%3Ccircle cx='25' cy='31' r='2.5' fill='%23602824'/%3E%3Ccircle cx='39' cy='31' r='2.5' fill='%23602824'/%3E%3Cpath d='M24 40q8 7 16 0' fill='none' stroke='%23602824' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+        --ink: #173b3d;
+        --cream: #fff9e8;
+        --teal: #0b777d;
+        --yellow: #ffd85a;
+        --coral: #ff766d;
+        --sky: #84d9ed;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--teal);
+      }
+
+      body { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+
+      button { font: inherit; }
+
+      .toy {
+        position: fixed;
+        inset: 0;
+        isolation: isolate;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 100dvh;
+        overflow: hidden;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 13% 15%, rgba(255,255,255,.95) 0 4px, transparent 5px),
+          radial-gradient(circle at 86% 72%, rgba(255,255,255,.75) 0 5px, transparent 6px),
+          linear-gradient(145deg, #b8f2ee 0%, #90e0ee 45%, #ffeca6 100%);
+        transition: background .6s ease;
+      }
+
+      .toy::before,
+      .toy::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 42vmin;
+        height: 42vmin;
+        border-radius: 50%;
+        filter: blur(1px);
+        opacity: .72;
+        animation: float 9s ease-in-out infinite;
+      }
+
+      .toy::before { left: -12vmin; bottom: -16vmin; background: #ff8d7f; }
+      .toy::after { right: -11vmin; top: -16vmin; background: #ffd95f; animation-delay: -4.5s; }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) .5rem max(1rem, env(safe-area-inset-left));
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: .72rem;
+        min-width: 0;
+        padding: .55rem 1rem .55rem .65rem;
+        border: 2px solid rgba(255,255,255,.7);
+        border-radius: 999px;
+        background: rgba(255,255,255,.72);
+        box-shadow: 0 8px 24px rgba(18,74,78,.12);
+        backdrop-filter: blur(10px);
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 50%;
+        background: var(--yellow);
+        font-size: 1.3rem;
+      }
+
+      .brand strong {
+        overflow: hidden;
+        font-size: clamp(1rem, 2vw, 1.3rem);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .close-button {
+        display: grid;
+        place-items: center;
+        width: clamp(3.25rem, 7vw, 4.25rem);
+        height: clamp(3.25rem, 7vw, 4.25rem);
+        flex: 0 0 auto;
+        border: 3px solid rgba(255,255,255,.9);
+        border-radius: 50%;
+        color: white;
+        background: #df4c58;
+        box-shadow: 0 8px 0 #a9293a, 0 12px 24px rgba(87,20,31,.22);
+        cursor: pointer;
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        line-height: 1;
+        transform: translateY(0);
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+
+      .close-button:hover { transform: translateY(2px); box-shadow: 0 6px 0 #a9293a, 0 10px 20px rgba(87,20,31,.2); }
+      .close-button:active { transform: translateY(7px); box-shadow: 0 1px 0 #a9293a; }
+
+      .stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        padding: .5rem clamp(1rem, 4vw, 4rem);
+      }
+
+      .welcome,
+      .reaction {
+        grid-area: 1 / 1;
+        width: min(100%, 70rem);
+        height: min(100%, 46rem);
+      }
+
+      .welcome {
+        display: grid;
+        grid-template-columns: minmax(14rem, .9fr) minmax(18rem, 1.1fr);
+        align-items: center;
+        gap: clamp(1.25rem, 4vw, 4rem);
+        padding: clamp(1rem, 3vw, 2.5rem);
+        border: 3px solid rgba(255,255,255,.72);
+        border-radius: clamp(2rem, 5vw, 4rem);
+        background: rgba(255,255,255,.54);
+        box-shadow: 0 24px 70px rgba(18,74,78,.18);
+        backdrop-filter: blur(13px);
+        transition: opacity .35s ease, transform .35s ease;
+      }
+
+      .welcome.is-hidden { opacity: 0; transform: scale(.9); pointer-events: none; }
+
+      .friends-image {
+        width: 100%;
+        max-height: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border: 7px solid white;
+        border-radius: 32% 42% 31% 45% / 38% 32% 46% 36%;
+        box-shadow: 0 18px 40px rgba(19,71,73,.22);
+        animation: bob 4.5s ease-in-out infinite;
+      }
+
+      .welcome-copy { text-align: left; }
+      .eyebrow { margin: 0 0 .5rem; color: #087078; font-size: clamp(1rem, 2.2vw, 1.5rem); }
+
+      h1 {
+        margin: 0;
+        color: #16484b;
+        font-size: clamp(3rem, 9vw, 7.4rem);
+        line-height: .9;
+        letter-spacing: -.07em;
+      }
+
+      h1 span { color: #dc3e57; }
+
+      .prompt {
+        display: inline-flex;
+        align-items: center;
+        gap: .75rem;
+        margin: clamp(1.3rem, 3vw, 2.2rem) 0 0;
+        padding: .8rem 1.15rem;
+        border-radius: 1.25rem;
+        color: white;
+        background: #087078;
+        box-shadow: 0 8px 0 #04545a;
+        font-size: clamp(1.15rem, 2.6vw, 1.8rem);
+        line-height: 1.2;
+      }
+
+      .prompt-kbd {
+        display: grid;
+        place-items: center;
+        width: 2.35rem;
+        height: 2.35rem;
+        border-radius: .7rem;
+        color: #64501c;
+        background: var(--yellow);
+        font-size: 1.4rem;
+        animation: tap 1.25s ease-in-out infinite;
+      }
+
+      .reaction {
+        position: relative;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        opacity: 0;
+        transform: scale(.78);
+        pointer-events: none;
+        transition: opacity .25s ease, transform .3s cubic-bezier(.2,.8,.2,1.2);
+      }
+
+      .reaction.is-visible { opacity: 1; transform: scale(1); }
+
+      .animal {
+        display: grid;
+        place-items: center;
+        width: min(42vmin, 22rem);
+        height: min(42vmin, 22rem);
+        border: clamp(6px, 1vw, 12px) solid rgba(255,255,255,.92);
+        border-radius: 48% 52% 46% 54% / 54% 45% 55% 46%;
+        background: rgba(255,255,255,.56);
+        box-shadow: 0 26px 60px rgba(17,69,73,.2);
+        font-size: min(26vmin, 13.5rem);
+        line-height: 1;
+        filter: drop-shadow(0 12px 2px rgba(0,0,0,.05));
+      }
+
+      .reaction.pop .animal { animation: pop .55s cubic-bezier(.2,.9,.3,1.4); }
+
+      .message {
+        margin: clamp(.7rem, 2vh, 1.2rem) 0 0;
+        padding: .25rem 1rem;
+        color: #143e41;
+        font-size: clamp(2rem, 6vw, 5rem);
+        line-height: 1;
+        letter-spacing: -.04em;
+        text-wrap: balance;
+        text-shadow: 0 3px 0 rgba(255,255,255,.8);
+      }
+
+      .key-bubble {
+        position: absolute;
+        right: 2%;
+        bottom: 8%;
+        display: grid;
+        place-items: center;
+        min-width: clamp(4.3rem, 10vw, 6.5rem);
+        height: clamp(4.3rem, 10vw, 6.5rem);
+        padding: .5rem;
+        border: 4px solid white;
+        border-radius: 1.5rem;
+        color: white;
+        background: #df4c58;
+        box-shadow: 0 9px 0 #a8293c;
+        font-size: clamp(1.5rem, 4vw, 3rem);
+        text-transform: uppercase;
+        transform: rotate(8deg);
+      }
+
+      .spark {
+        position: fixed;
+        z-index: 8;
+        width: 1.2rem;
+        height: 1.2rem;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: sparkle .8s ease-out forwards;
+      }
+
+      .hint {
+        justify-self: center;
+        margin: .25rem 1rem max(1rem, env(safe-area-inset-bottom));
+        padding: .55rem 1.1rem;
+        border-radius: 999px;
+        color: rgba(23,59,61,.8);
+        background: rgba(255,255,255,.55);
+        font-size: clamp(.9rem, 1.8vw, 1.1rem);
+      }
+
+      .closed {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: none;
+        place-items: center;
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        background: #096e74;
+      }
+
+      .closed.is-visible { display: grid; }
+      .closed .moon { font-size: clamp(5rem, 18vw, 11rem); }
+      .closed h2 { margin: .7rem 0 .3rem; font-size: clamp(2.2rem, 7vw, 5.5rem); }
+      .closed p { margin: 0; font-size: clamp(1.1rem, 3vw, 1.7rem); opacity: .88; }
+
+      @keyframes pop {
+        0% { transform: scale(.5) rotate(-7deg); }
+        55% { transform: scale(1.12) rotate(4deg); }
+        100% { transform: scale(1) rotate(0); }
+      }
+
+      @keyframes sparkle {
+        from { transform: translate(0,0) scale(1); opacity: 1; }
+        to { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+      }
+
+      @keyframes bob { 50% { transform: translateY(-10px) rotate(1deg); } }
+      @keyframes tap { 50% { transform: translateY(5px); } }
+      @keyframes float { 50% { transform: translate(2vmin, -3vmin) scale(1.05); } }
+
+      @media (max-width: 720px), (max-height: 560px) {
+        .welcome { grid-template-columns: .8fr 1.2fr; border-radius: 2rem; }
+        .friends-image { border-width: 4px; }
+        .hint { display: none; }
+        .animal { width: min(38vmin, 15rem); height: min(38vmin, 15rem); font-size: min(24vmin, 9rem); }
+        .key-bubble { right: 0; bottom: 2%; }
+      }
+
+      @media (max-width: 560px) and (orientation: portrait) {
+        .welcome { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 1rem; text-align: center; }
+        .friends-image { width: min(55vw, 15rem); justify-self: center; }
+        .welcome-copy { text-align: center; }
+        .prompt { margin-top: 1rem; }
+        .animal { width: min(58vw, 18rem); height: min(58vw, 18rem); font-size: min(38vw, 11rem); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="toy" id="toy" aria-label="Brinquedo de teclado da Bela">
+      <header class="topbar">
+        <div class="brand" aria-label="Brinquedo da Bela">
+          <span class="brand-mark" aria-hidden="true">☀️</span>
+          <strong>Brinquedo da Bela</strong>
+        </div>
+        <button class="close-button" id="closeButton" tabindex="-1" aria-label="Fechar o brinquedo" title="Fechar com o mouse">×</button>
+      </header>
+
+      <section class="stage" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <img class="friends-image" src="./amigos-da-bela.png" alt="Leão, elefante, sapinho, patinho e coruja sorrindo para a Bela" />
+          <div class="welcome-copy">
+            <p class="eyebrow">Oi, Bela! 👋</p>
+            <h1>Vamos<br /><span>brincar?</span></h1>
+            <p class="prompt"><span class="prompt-kbd" aria-hidden="true">⌨</span> Aperte qualquer tecla</p>
+          </div>
+        </div>
+
+        <div class="reaction" id="reaction">
+          <div class="animal" id="animal" aria-hidden="true">🦁</div>
+          <h2 class="message" id="message">Que legal, Bela!</h2>
+          <div class="key-bubble" id="keyBubble" aria-label="Tecla apertada">A</div>
+        </div>
+      </section>
+
+      <p class="hint">Aperte qualquer tecla • para sair, clique no ×</p>
+    </main>
+
+    <section class="closed" id="closed" aria-label="Brinquedo fechado">
+      <div>
+        <div class="moon" aria-hidden="true">🌙</div>
+        <h2>Até logo, Bela!</h2>
+        <p>O brinquedo foi fechado.</p>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const toy = document.getElementById('toy');
+        const welcome = document.getElementById('welcome');
+        const reaction = document.getElementById('reaction');
+        const animal = document.getElementById('animal');
+        const message = document.getElementById('message');
+        const keyBubble = document.getElementById('keyBubble');
+        const closeButton = document.getElementById('closeButton');
+        const closed = document.getElementById('closed');
+
+        let audioContext;
+        let master;
+        let started = false;
+        let closedState = false;
+        let lastIndex = -1;
+        let lastPress = 0;
+
+        const scenes = [
+          { icon: '🦁', text: 'Rooar! O leão da Bela!', colors: ['#ffc867', '#ff927a', '#fff0a8'], sound: lion },
+          { icon: '🐶', text: 'Au, au! Oi, Bela!', colors: ['#a5e8f2', '#79d6bf', '#fff1a3'], sound: dog },
+          { icon: '🐱', text: 'Miau! Um carinho!', colors: ['#ffc1c8', '#ffd995', '#bcece7'], sound: cat },
+          { icon: '🐮', text: 'Muuu! Muito bem!', colors: ['#c7efb0', '#8ee1dc', '#ffe387'], sound: cow },
+          { icon: '🐸', text: 'Coax, coax! Pula, Bela!', colors: ['#9bea9b', '#70d8bf', '#fff0a3'], sound: frog },
+          { icon: '🐤', text: 'Piu-piu! Que alegria!', colors: ['#fff179', '#ffbd74', '#a8e8f2'], sound: bird },
+          { icon: '🦆', text: 'Quá-quá! Olá, Bela!', colors: ['#ffe58b', '#82dce4', '#b8edb5'], sound: duck },
+          { icon: '🐘', text: 'Pruuu! Viva a Bela!', colors: ['#a9cbff', '#beb8f5', '#ffe7a1'], sound: elephant },
+          { icon: '🦉', text: 'Uhuu! Bela esperta!', colors: ['#d5b8ff', '#8dded9', '#ffd39c'], sound: owl },
+          { icon: '🌧️', text: 'Chuvinha gostosa!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sound: rain },
+          { icon: '🌊', text: 'O mar faz shhh...', colors: ['#7edbe8', '#66bde8', '#bff3df'], sound: ocean },
+          { icon: '🌈', text: 'Um arco-íris pra Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow }
+        ];
+
+        function ensureAudio() {
+          if (!audioContext) {
+            const AudioCtor = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtor) return;
+            audioContext = new AudioCtor();
+            master = audioContext.createGain();
+            master.gain.value = 0.2;
+            master.connect(audioContext.destination);
+          }
+          if (audioContext.state === 'suspended') audioContext.resume();
+        }
+
+        function tone(freq, duration, type = 'sine', offset = 0, endFreq = freq, volume = .24) {
+          if (!audioContext || !master) return;
+          const now = audioContext.currentTime + offset;
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(Math.max(30, endFreq), now + duration);
+          gain.gain.setValueAtTime(.001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + .025);
+          gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+          osc.connect(gain).connect(master);
+          osc.start(now);
+          osc.stop(now + duration + .03);
+        }
+
+        function noise(duration, offset = 0, volume = .1, lowpass = 1200) {
+          if (!audioContext || !master) return;
+          const frames = Math.max(1, Math.floor(audioContext.sampleRate * duration));
+          const buffer = audioContext.createBuffer(1, frames, audioContext.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+          const src = audioContext.createBufferSource();
+          const filter = audioContext.createBiquadFilter();
+          const gain = audioContext.createGain();
+          const now = audioContext.currentTime + offset;
+          filter.type = 'lowpass';
+          filter.frequency.value = lowpass;
+          gain.gain.setValueAtTime(.001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + .04);
+          gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+          src.buffer = buffer;
+          src.connect(filter).connect(gain).connect(master);
+          src.start(now);
+        }
+
+        function lion() { tone(130,.28,'sawtooth',0,75,.14); tone(105,.34,'square',.18,58,.09); }
+        function dog() { tone(310,.11,'square',0,185,.18); tone(340,.12,'square',.18,205,.18); }
+        function cat() { tone(520,.42,'sine',0,280,.2); tone(760,.16,'triangle',.05,520,.1); }
+        function cow() { tone(155,.52,'sawtooth',0,92,.13); tone(120,.42,'triangle',.22,78,.13); }
+        function frog() { tone(120,.13,'square',0,85,.12); tone(105,.16,'square',.19,72,.12); }
+        function bird() { tone(1450,.1,'sine',0,2200,.15); tone(1850,.12,'sine',.12,2600,.14); tone(2100,.1,'sine',.28,1600,.12); }
+        function duck() { tone(420,.12,'square',0,240,.13); tone(380,.14,'square',.16,215,.12); }
+        function elephant() { tone(230,.55,'sawtooth',0,630,.11); tone(330,.4,'triangle',.16,760,.08); }
+        function owl() { tone(360,.25,'sine',0,250,.2); tone(330,.3,'sine',.32,215,.18); }
+        function rain() { noise(.75,0,.12,2400); tone(920,.08,'sine',.12,760,.06); tone(720,.09,'sine',.38,610,.05); }
+        function ocean() { noise(.8,0,.12,650); tone(150,.7,'sine',0,95,.05); }
+        function rainbow() { [523,659,784,1047].forEach((f,i) => tone(f,.25,'sine',i*.09,f*1.02,.13)); }
+
+        function speak(text) {
+          if (!('speechSynthesis' in window)) return;
+          speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'pt-BR';
+          utterance.rate = .88;
+          utterance.pitch = 1.28;
+          utterance.volume = .85;
+          const voices = speechSynthesis.getVoices();
+          const voice = voices.find(v => v.lang.toLowerCase().startsWith('pt-br')) || voices.find(v => v.lang.toLowerCase().startsWith('pt'));
+          if (voice) utterance.voice = voice;
+          speechSynthesis.speak(utterance);
+        }
+
+        function requestFullScreen() {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+          }
+        }
+
+        function labelForKey(event) {
+          if (event.key === ' ') return '★';
+          if (event.key.length === 1) return event.key;
+          const names = { Enter: '↵', Backspace: '⌫', Tab: '⇥', Shift: '⇧', Control: 'Ctrl', Alt: 'Alt', CapsLock: '⇪', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Escape: 'Esc' };
+          return names[event.key] || '★';
+        }
+
+        function sparkle() {
+          const palette = ['#ff576b','#ffd84f','#35bba9','#5f91ff','#ff8d55','#ffffff'];
+          for (let i = 0; i < 12; i++) {
+            const dot = document.createElement('i');
+            dot.className = 'spark';
+            dot.style.left = `${40 + Math.random() * 20}%`;
+            dot.style.top = `${34 + Math.random() * 25}%`;
+            dot.style.background = palette[i % palette.length];
+            dot.style.setProperty('--dx', `${(Math.random() - .5) * 58}vw`);
+            dot.style.setProperty('--dy', `${(Math.random() - .5) * 58}vh`);
+            document.body.appendChild(dot);
+            setTimeout(() => dot.remove(), 850);
+          }
+        }
+
+        function play(event) {
+          if (closedState) return;
+          const now = performance.now();
+          if (event.repeat && now - lastPress < 115) return;
+          lastPress = now;
+          ensureAudio();
+          requestFullScreen();
+
+          let index = Math.abs((event.code || event.key || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % scenes.length;
+          if (index === lastIndex) index = (index + 1) % scenes.length;
+          lastIndex = index;
+          const scene = scenes[index];
+
+          if (!started) {
+            started = true;
+            welcome.classList.add('is-hidden');
+            reaction.classList.add('is-visible');
+          }
+
+          animal.textContent = scene.icon;
+          message.textContent = scene.text;
+          keyBubble.textContent = labelForKey(event);
+          toy.style.background = `radial-gradient(circle at 13% 15%, rgba(255,255,255,.9) 0 4px, transparent 5px), linear-gradient(145deg, ${scene.colors[0]}, ${scene.colors[1]} 52%, ${scene.colors[2]})`;
+          reaction.classList.remove('pop');
+          void reaction.offsetWidth;
+          reaction.classList.add('pop');
+          scene.sound();
+          speak(scene.text);
+          sparkle();
+        }
+
+        function closeGame(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          closedState = true;
+          if ('speechSynthesis' in window) speechSynthesis.cancel();
+          if (audioContext) audioContext.suspend();
+          if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          toy.hidden = true;
+          closed.classList.add('is-visible');
+          setTimeout(() => window.close(), 80);
+        }
+
+        window.addEventListener('keydown', event => {
+          if (closedState) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          play(event);
+        }, { capture: true });
+
+        window.addEventListener('contextmenu', event => event.preventDefault());
+        closeButton.addEventListener('pointerdown', event => event.stopPropagation());
+        closeButton.addEventListener('click', closeGame);
+        document.addEventListener('pointerdown', event => {
+          if (!closedState && event.target !== closeButton) {
+            ensureAudio();
+            requestFullScreen();
+            if (!started) speak('Oi, Bela! Aperte qualquer tecla para brincar!');
+          }
+        }, { once: true });
+      })();
+    </script>
+  </body>
+</html>
