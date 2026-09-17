@@ -1,0 +1,45 @@
+{
+  "name": "brinquedo-da-bela",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Brinquedo de teclado em tela cheia para a Bela",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:helper": "powershell -NoProfile -ExecutionPolicy Bypass -File desktop/build-helper.ps1",
+    "build:desktop": "npm run build:helper && electron-builder --win portable",
+    "deploy:cloudflare": "wrangler pages deploy dist --project-name brinquedo-da-bela --branch main"
+  },
+  "devDependencies": {
+    "electron": "44.4.1",
+    "electron-builder": "26.15.3",
+    "wrangler": "^4.0.0"
+  },
+  "build": {
+    "appId": "com.bela.brinquedo",
+    "productName": "Brinquedo da Bela",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop/bin/KeyboardBlocker.exe",
+        "to": "KeyboardBlocker.exe"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "icon": "desktop/icon.ico",
+      "target": [
+        "portable"
+      ],
+      "artifactName": "Brinquedo-da-Bela-${version}.${ext}"
+    }
+  }
+}

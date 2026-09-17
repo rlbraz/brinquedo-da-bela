@@ -232,6 +232,13 @@
         filter: drop-shadow(0 12px 2px rgba(0,0,0,.05));
       }
 
+      .animal .princess-art {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: inherit;
+      }
+
       .reaction.pop .animal { animation: pop .55s cubic-bezier(.2,.9,.3,1.4); }
 
       .message {
@@ -414,27 +421,61 @@
           return [name, audio];
         }));
 
-        const voiceKeys = ['welcome', 'lion', 'dog', 'cat', 'cow', 'frog', 'bird', 'duck', 'elephant', 'owl', 'rain', 'ocean', 'rainbow'];
+        const voiceKeys = ['welcome', 'lion_1', 'lion_2', 'lion_3', 'dog_1', 'dog_2', 'dog_3', 'cat_1', 'cat_2', 'cat_3', 'cow_1', 'cow_2', 'cow_3', 'frog_1', 'frog_2', 'frog_3', 'bird_1', 'bird_2', 'bird_3', 'duck_1', 'duck_2', 'duck_3', 'elephant_1', 'elephant_2', 'elephant_3', 'owl_1', 'owl_2', 'owl_3', 'bunny_1', 'bunny_2', 'bunny_3', 'belina_1', 'belina_2', 'estela_1', 'estela_2', 'marina_1', 'marina_2', 'flora_1', 'flora_2', 'celina_1', 'celina_2', 'rainbow', 'rain', 'ocean', 'stars', 'garden'];
         const voiceSamples = Object.fromEntries(voiceKeys.map(name => {
-          const audio = new Audio(`./voice/${name}.mp3`);
+          const audio = new Audio(`./voice-ai/${name}.mp3`);
           audio.preload = 'auto';
           audio.volume = .92;
           return [name, audio];
         }));
 
+        const princessArt = './princesas-da-bela.png';
         const scenes = [
-          { icon: '🦁', voice: 'lion', text: 'Rooar! O leão da Bela!', colors: ['#ffc867', '#ff927a', '#fff0a8'], sample: 'lion', sound: lion },
-          { icon: '🐶', voice: 'dog', text: 'Au, au! Oi, Bela!', colors: ['#a5e8f2', '#79d6bf', '#fff1a3'], sample: 'dog', sound: dog },
-          { icon: '🐱', voice: 'cat', text: 'Miau! Um carinho!', colors: ['#ffc1c8', '#ffd995', '#bcece7'], sample: 'cat', sound: cat },
-          { icon: '🐮', voice: 'cow', text: 'Muuu! Muito bem!', colors: ['#c7efb0', '#8ee1dc', '#ffe387'], sample: 'cow', sound: cow },
-          { icon: '🐸', voice: 'frog', text: 'Coax, coax! Pula, Bela!', colors: ['#9bea9b', '#70d8bf', '#fff0a3'], sound: frog },
-          { icon: '🐤', voice: 'bird', text: 'Piu-piu! Que alegria!', colors: ['#fff179', '#ffbd74', '#a8e8f2'], sample: 'bird', sound: bird },
-          { icon: '🦆', voice: 'duck', text: 'Quá-quá! Olá, Bela!', colors: ['#ffe58b', '#82dce4', '#b8edb5'], sample: 'geese', sound: duck },
-          { icon: '🐘', voice: 'elephant', text: 'Pruuu! Viva a Bela!', colors: ['#a9cbff', '#beb8f5', '#ffe7a1'], sound: elephant },
-          { icon: '🦉', voice: 'owl', text: 'Uhuu! Bela esperta!', colors: ['#d5b8ff', '#8dded9', '#ffd39c'], sample: 'owl', sound: owl },
-          { icon: '🌧️', voice: 'rain', text: 'Chuvinha gostosa!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sample: 'nature', sound: rain },
-          { icon: '🌊', voice: 'ocean', text: 'O mar faz shhh...', colors: ['#7edbe8', '#66bde8', '#bff3df'], sample: 'nature', sound: ocean },
-          { icon: '🌈', voice: 'rainbow', text: 'Um arco-íris pra Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow }
+          { icon: '🦁', voice: 'lion_1', text: 'O leão faz rrrr! Coragem, Bela!', colors: ['#ffc867', '#ff927a', '#fff0a8'], sample: 'lion', sound: lion },
+          { icon: '🦁', voice: 'lion_2', text: 'Um rugido fofinho para a Bela!', colors: ['#ffd978', '#ffae7a', '#ffeeb5'], sample: 'lion', sound: lion },
+          { icon: '🦁', voice: 'lion_3', text: 'O leão dourado quer brincar!', colors: ['#f6c358', '#ee906d', '#ffec9e'], sample: 'lion', sound: lion },
+          { icon: '🐶', voice: 'dog_1', text: 'Au, au! O cachorrinho chegou!', colors: ['#a5e8f2', '#79d6bf', '#fff1a3'], sample: 'dog', sound: dog },
+          { icon: '🐶', voice: 'dog_2', text: 'O cãozinho mandou um beijo para a Bela!', colors: ['#bde8ff', '#8cddc9', '#fff1a3'], sample: 'dog', sound: dog },
+          { icon: '🐶', voice: 'dog_3', text: 'Abana o rabinho, cachorrinho!', colors: ['#9de1eb', '#74c9be', '#ffe28c'], sample: 'dog', sound: dog },
+          { icon: '🐱', voice: 'cat_1', text: 'Miau! A gatinha quer carinho!', colors: ['#ffc1c8', '#ffd995', '#bcece7'], sample: 'cat', sound: cat },
+          { icon: '🐱', voice: 'cat_2', text: 'Ronrom, ronrom. Que gostoso, Bela!', colors: ['#ffcfdb', '#ffd99b', '#c8f0ea'], sample: 'cat', sound: cat },
+          { icon: '🐱', voice: 'cat_3', text: 'A gatinha pulou bem alto!', colors: ['#f6b5d8', '#ffd7a0', '#b6e9ed'], sample: 'cat', sound: cat },
+          { icon: '🐮', voice: 'cow_1', text: 'Muuu! A vaquinha disse olá!', colors: ['#c7efb0', '#8ee1dc', '#ffe387'], sample: 'cow', sound: cow },
+          { icon: '🐮', voice: 'cow_2', text: 'A vaquinha passeia no campo!', colors: ['#d9f0be', '#91d8cd', '#ffe9a4'], sample: 'cow', sound: cow },
+          { icon: '🐮', voice: 'cow_3', text: 'Muuu! Muito bem, Bela!', colors: ['#d4ebb5', '#a8dfcb', '#ffe28c'], sample: 'cow', sound: cow },
+          { icon: '🐸', voice: 'frog_1', text: 'Coax, coax! O sapinho pulou!', colors: ['#9bea9b', '#70d8bf', '#fff0a3'], sound: frog },
+          { icon: '🐸', voice: 'frog_2', text: 'Pula, pula, sapinho verde!', colors: ['#a7ef9f', '#80dcc4', '#ffef9a'], sound: frog },
+          { icon: '🐸', voice: 'frog_3', text: 'O sapinho achou uma flor!', colors: ['#b4efa0', '#67ccb8', '#ffe793'], sound: frog },
+          { icon: '🐤', voice: 'bird_1', text: 'Piu-piu! O passarinho cantou!', colors: ['#fff179', '#ffbd74', '#a8e8f2'], sample: 'bird', sound: bird },
+          { icon: '🐤', voice: 'bird_2', text: 'Voa, passarinho! Voa até a Bela!', colors: ['#ffe989', '#fcbf86', '#a6e0f1'], sample: 'bird', sound: bird },
+          { icon: '🐤', voice: 'bird_3', text: 'Uma canção alegre para a Bela!', colors: ['#fff4a0', '#ffb97c', '#a6e3e9'], sample: 'bird', sound: bird },
+          { icon: '🦆', voice: 'duck_1', text: 'Quá-quá! O patinho chegou!', colors: ['#ffe58b', '#82dce4', '#b8edb5'], sample: 'geese', sound: duck },
+          { icon: '🦆', voice: 'duck_2', text: 'O patinho nada devagarinho!', colors: ['#ffe8a0', '#8ad9e2', '#c1edb0'], sample: 'geese', sound: duck },
+          { icon: '🦆', voice: 'duck_3', text: 'Quá-quá! Que alegria, Bela!', colors: ['#ffec9e', '#8fd9e9', '#b8e8b2'], sample: 'geese', sound: duck },
+          { icon: '🐘', voice: 'elephant_1', text: 'Pruuu! O elefante levantou a tromba!', colors: ['#a9cbff', '#beb8f5', '#ffe7a1'], sound: elephant },
+          { icon: '🐘', voice: 'elephant_2', text: 'Passos grandes e coração fofinho!', colors: ['#b4d4ff', '#c9c1f7', '#ffeab0'], sound: elephant },
+          { icon: '🐘', voice: 'elephant_3', text: 'O elefante azul dança com a Bela!', colors: ['#a7d0ff', '#c2c0f0', '#ffdfa3'], sound: elephant },
+          { icon: '🦉', voice: 'owl_1', text: 'Uhuu! A coruja acordou!', colors: ['#d5b8ff', '#8dded9', '#ffd39c'], sample: 'owl', sound: owl },
+          { icon: '🦉', voice: 'owl_2', text: 'A corujinha viu uma estrela!', colors: ['#d3c0ff', '#8fd9db', '#ffdca1'], sample: 'owl', sound: owl },
+          { icon: '🦉', voice: 'owl_3', text: 'Uhuu! Bela é muito esperta!', colors: ['#d9c6ff', '#88d4db', '#ffdaa7'], sample: 'owl', sound: owl },
+          { icon: '🐰', voice: 'bunny_1', text: 'O coelhinho pulou bem alto!', colors: ['#ffd4e4', '#d6c5ff', '#fff0b0'], sound: rainbow },
+          { icon: '🐰', voice: 'bunny_2', text: 'Focinho fofinho e orelhas compridas!', colors: ['#ffd5e4', '#c8e0ff', '#fff1c4'], sound: rainbow },
+          { icon: '🐰', voice: 'bunny_3', text: 'O coelhinho trouxe uma cenoura!', colors: ['#ffd3df', '#c8e8da', '#ffe6a4'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'belina_1', text: 'A princesa Belina trouxe um coração para a Bela!', colors: ['#ffb1c0', '#f28c9b', '#ffe6a3'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'belina_2', text: 'Belina abriu as portas do castelo encantado!', colors: ['#ffb7c4', '#ef9da4', '#ffe6aa'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'estela_1', text: 'A princesa Estela acendeu as estrelas!', colors: ['#8c96e6', '#4c5eb5', '#ffd875'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'estela_2', text: 'Estela encontrou uma estrela brilhante!', colors: ['#9aa2ed', '#5964bd', '#ffde7d'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'marina_1', text: 'A princesa Marina dança com as ondas!', colors: ['#85e2e5', '#4db8cd', '#d5f0c0'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'marina_2', text: 'Marina encontrou uma concha azul!', colors: ['#8fe5e8', '#55bdd1', '#d4efc2'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'flora_1', text: 'A princesa Flora fez o jardim florescer!', colors: ['#9bdda1', '#5abf86', '#fff0a2'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'flora_2', text: 'Flora trouxe uma flor cheirosa para a Bela!', colors: ['#a8e4a8', '#6ac58a', '#ffed9b'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'celina_1', text: 'A princesa Celina iluminou o céu!', colors: ['#ffe38d', '#f5b35f', '#b8e7ed'], sound: rainbow },
+          { icon: '👸', image: princessArt, voice: 'celina_2', text: 'Celina convidou a Bela para o baile!', colors: ['#ffe69a', '#f6bd6c', '#bde7ec'], sound: rainbow },
+          { icon: '🌈', voice: 'rainbow', text: 'Um arco-íris colorido para a Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow },
+          { icon: '🌧️', voice: 'rain', text: 'Chuvinha gostosa no jardim!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sample: 'nature', sound: rain },
+          { icon: '🌊', voice: 'ocean', text: 'O mar faz shhh, shhh, shhh!', colors: ['#7edbe8', '#66bde8', '#bff3df'], sample: 'nature', sound: ocean },
+          { icon: '✨', voice: 'stars', text: 'As estrelinhas estão dançando!', colors: ['#b7b2ff', '#7fcbe5', '#ffe083'], sound: rainbow },
+          { icon: '🌼', voice: 'garden', text: 'O jardim mágico acordou, Bela!', colors: ['#a7e5b2', '#7dd4c4', '#ffe48a'], sound: rainbow }
         ];
 
         function ensureAudio() {
@@ -569,6 +610,7 @@
         }
 
         function labelForKey(event) {
+          if (!event || typeof event.key !== 'string') return '★';
           if (event.key === ' ') return '★';
           if (event.key.length === 1) return event.key;
           const names = { Enter: '↵', Backspace: '⌫', Tab: '⇥', Shift: '⇧', Control: 'Ctrl', Alt: 'Alt', CapsLock: '⇪', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Escape: 'Esc' };
@@ -609,7 +651,11 @@
             reaction.classList.add('is-visible');
           }
 
-          animal.textContent = scene.icon;
+          if (scene.image) {
+            animal.innerHTML = `<img class="princess-art" src="${scene.image}" alt="Princesas originais da Bela" />`;
+          } else {
+            animal.textContent = scene.icon;
+          }
           message.textContent = scene.text;
           keyBubble.textContent = labelForKey(event);
           toy.style.background = `radial-gradient(circle at 13% 15%, rgba(255,255,255,.9) 0 4px, transparent 5px), linear-gradient(145deg, ${scene.colors[0]}, ${scene.colors[1]} 52%, ${scene.colors[2]})`;
@@ -638,6 +684,10 @@
           }
           if (audioContext) audioContext.suspend();
           if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          if (window.belaDesktop) {
+            window.belaDesktop.close();
+            return;
+          }
           toy.hidden = true;
           closed.classList.add('is-visible');
           setTimeout(() => window.close(), 80);
@@ -658,12 +708,26 @@
           }, { capture: true });
         });
 
+        function browserEventFromVirtualKey(data) {
+          const vk = Number(data?.vk);
+          const named = {
+            8: ['Backspace', 'Backspace'], 9: ['Tab', 'Tab'], 13: ['Enter', 'Enter'], 16: ['Shift', 'ShiftLeft'], 17: ['Control', 'ControlLeft'], 18: ['Alt', 'AltLeft'], 20: ['CapsLock', 'CapsLock'], 27: ['Escape', 'Escape'], 32: [' ', 'Space'],
+            37: ['ArrowLeft', 'ArrowLeft'], 38: ['ArrowUp', 'ArrowUp'], 39: ['ArrowRight', 'ArrowRight'], 40: ['ArrowDown', 'ArrowDown'], 46: ['Delete', 'Delete']
+          };
+          const value = named[vk] || (vk >= 65 && vk <= 90 ? [String.fromCharCode(vk), `Key${String.fromCharCode(vk)}`] : vk >= 48 && vk <= 57 ? [String.fromCharCode(vk), `Digit${String.fromCharCode(vk)}`] : [`F${vk - 111}`, `F${vk - 111}`]);
+          return { key: value[0], code: value[1], repeat: Boolean(data?.repeat) };
+        }
+
+        if (window.belaDesktop) {
+          window.belaDesktop.onKey(data => play(data?.vk ? browserEventFromVirtualKey(data) : data));
+        }
+
         chooseFeminineVoice();
         if ('speechSynthesis' in window) speechSynthesis.addEventListener('voiceschanged', chooseFeminineVoice);
 
-        history.pushState({ belaToy: true }, '', location.href);
+        try { history.pushState({ belaToy: true }, '', location.href); } catch {}
         window.addEventListener('popstate', () => {
-          if (!closedState) history.pushState({ belaToy: true }, '', location.href);
+          if (!closedState) { try { history.pushState({ belaToy: true }, '', location.href); } catch {} }
         });
         window.addEventListener('blur', () => {
           if (!closedState) setTimeout(() => window.focus(), 0);
