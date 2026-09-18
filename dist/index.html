@@ -380,7 +380,8 @@
           <img class="friends-image" src="./amigos-da-bela.png" alt="Leão, elefante, sapinho, patinho e coruja sorrindo para a Bela" />
           <div class="welcome-copy">
             <p class="eyebrow">Oi, Bela! 👋</p>
-            <h1>Vamos<br /><span>brincar?</span></h1>
+            <h1>Vamos<br /><span>trabalhar?</span></h1>
+            <button id="startGreeting" type="button" style="border:0;border-radius:1rem;padding:.7rem 1.2rem;background:#ffd85a;color:#173b3d;cursor:pointer">Ouvir: Oi Bela, vamos trabalhar?</button>
             <p class="prompt"><span class="prompt-kbd" aria-hidden="true">⌨</span> Aperte qualquer tecla</p>
             <p class="install-guide" id="installGuide" hidden><strong>Instalar no iPhone</strong><br />No Safari, toque em Compartilhar → Adicionar à Tela de Início. Ative “Abrir como App da Web”, se aparecer, e toque em Adicionar.</p>
           </div>
@@ -430,9 +431,9 @@
         let activeSample = null;
         let activeVoice = null;
         let speaking = false;
-        let pendingEvent = null;
-        let transitionTimer = null;
-        let voiceTimer = null;
+        
+        
+        
         let speechGeneration = 0;
         let currentScene = null;
         let backgroundMusic = null;
@@ -634,10 +635,6 @@
 
         function cancelSpeech() {
           speechGeneration++;
-          clearTimeout(voiceTimer);
-          clearTimeout(transitionTimer);
-          transitionTimer = null;
-          pendingEvent = null;
           if (activeVoice) {
             activeVoice.onended = activeVoice.onerror = null;
             activeVoice.pause();
@@ -725,35 +722,8 @@
 
         function play(event) {
           if (closedState) return;
-          // A held key must not keep postponing the next scene indefinitely.
           if (event.repeat) { playTypingSound(); return; }
-          // Update the next choice without restarting the countdown. Continuous
-          // typing must still advance the toy every two seconds.
-          if (!event.ready && transitionTimer !== null) {
-            pendingEvent = { key: event.key, code: event.code, scene: event.scene, ready: true };
-            playTypingSound();
-            keyBubble.textContent = labelForKey(event);
-            return;
-          }
-          // Start inside the original user gesture so browsers unlock the audio.
-          if (!event.ready && started && (speaking || transitionTimer !== null)) {
-            cancelSpeech();
-            pendingEvent = { key: event.key, code: event.code, scene: event.scene, ready: true };
-            ensureAudio();
-            requestFullScreen();
-            playTypingSound();
-            keyBubble.textContent = labelForKey(event);
-            transitionTimer = setTimeout(() => {
-              const next = pendingEvent;
-              pendingEvent = null;
-              transitionTimer = null;
-              if (next && !closedState) play(next);
-            }, 2000);
-            return;
-          }
-          const now = performance.now();
-          if (event.repeat && now - lastPress < 115) return;
-          lastPress = now;
+          cancelSpeech();
           ensureAudio();
           requestFullScreen();
 
@@ -900,7 +870,7 @@
         // Pointerup carries transient user activation on touch browsers.
         // One handler avoids duplicate touch + synthesized mouse events.
         toy.addEventListener('pointerup', event => {
-          if (closedState || event.target.closest('#closeButton, .effect-buttons') || event.button !== 0) return;
+          if (closedState || event.target.closest('#closeButton, #startGreeting, .effect-buttons') || event.button !== 0) return;
           ensureAudio();
           requestFullScreen();
           const pool = touchCount % 2 ? princessScenes : animalScenes;
@@ -908,6 +878,21 @@
           touchCount++;
           play({ key: '♡', code: 'Touch', repeat: false, scene });
         });
+        const greetingButton = document.getElementById('startGreeting');
+        greetingButton.addEventListener('click', event => {
+          event.stopPropagation();
+          if (closedState) return;
+          cancelSpeech();
+          ensureAudio();
+          requestFullScreen();
+          speak('welcome', 'Oi Bela, vamos trabalhar?');
+        });
+        // Try on launch; browsers may require the explicit greeting button.
+        const greetingGeneration = speechGeneration;
+        activeVoice = voiceSamples.welcome;
+        speaking = true;
+        activeVoice.onended = () => { if (greetingGeneration === speechGeneration) speaking = false; };
+        activeVoice.play().catch(() => { if (greetingGeneration === speechGeneration) speaking = false; });
       })();
     </script>
   </body>

@@ -11,7 +11,7 @@ from kokoro_onnx import Kokoro
 
 
 PHRASES = {
-    "welcome": "Oi, Bela! Aperte qualquer tecla. A brincadeira vai começar!",
+    "welcome": "Oi Bela, vamos trabalhar?",
     "lion_1": "O leão faz rrrr! Coragem, Bela!",
     "lion_2": "Um rugido fofinho para a Bela!",
     "lion_3": "O leão dourado quer brincar!",

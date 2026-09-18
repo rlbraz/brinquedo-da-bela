@@ -12,16 +12,12 @@ script=script.replace('      })();','        window.testApi = {play, closeGame};
 vm.runInNewContext(script,ctx);
 function advance(ms){now+=ms;for(const [i,t] of [...timers])if(t.at<=now){timers.delete(i);t.f()}}
 const voices=()=>audios.filter(a=>a.src.includes('voice-girl')&&!a.paused);
-ctx.testApi.play({key:'a',code:'KeyA'});assert.equal(voices().length,1);assert(voices()[0].src.endsWith('lion_1.mp3'));
-ctx.testApi.play({key:'s',code:'KeyS'});assert.equal(voices().length,0);advance(1000);
-ctx.testApi.play({key:'d',code:'KeyD'});advance(500);ctx.testApi.play({key:'d',code:'KeyD',repeat:true});advance(499);assert.equal(voices().length,0);advance(1);
-assert.equal(voices().length,1);assert(voices()[0].src.endsWith('lion_2.mp3'));
-// Ten cycles with continuous distinct presses: the original deadline wins.
-for(let cycle=0;cycle<10;cycle++) {
-  ctx.testApi.play({key:'s',code:'KeyS'});
-  for(let i=0;i<9;i++){advance(200);ctx.testApi.play({key:'h',code:'KeyH'});}
-  advance(200);assert.equal(voices().length,1);assert(voices()[0].src.endsWith('estela_1.mp3'));
+for (let i=0;i<20;i++) {
+  ctx.testApi.play({key:'a',code:'KeyA'});
+  assert.equal(voices().length,1);assert(voices()[0].src.endsWith('lion_1.mp3'));
+  ctx.testApi.play({key:'h',code:'KeyH'});
+  assert.equal(voices().length,1);assert(voices()[0].src.endsWith('estela_1.mp3'));
   assert.match(get('message').textContent,/Estela/);
 }
-ctx.testApi.play({key:'f',code:'KeyF'});ctx.close=()=>{};ctx.testApi.closeGame({preventDefault(){},stopPropagation(){}});advance(3000);assert.equal(voices().length,0);
-console.log('PASS: first key starts immediately, immediate cancellation, 2-second delay, held key does not postpone, last input wins, close cancels pending speech');
+ctx.close=()=>{};ctx.testApi.closeGame({preventDefault(){},stopPropagation(){}});advance(3000);assert.equal(voices().length,0);
+console.log('PASS: 40 immediate scene/voice switches without advancing time, one voice at a time, close cancels playback');
