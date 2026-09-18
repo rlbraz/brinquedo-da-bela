@@ -11,6 +11,7 @@ ctx.document.createElement=node;ctx.window=ctx;ctx.addEventListener=()=>{};
 let script=readFileSync('dist/index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 script=script.replace('      })();','        window.testApi = {play, closeGame};\n      })();');
 vm.runInNewContext(script,ctx);
+ctx.belaMode='toy';
 function advance(ms){now+=ms;for(const [i,t] of [...timers])if(t.at<=now){timers.delete(i);t.f()}}
 const voices=()=>audios.filter(a=>a.src.includes('voice-girl')&&!a.paused);
 for (let i=0;i<20;i++) {
@@ -32,4 +33,5 @@ for(let i=0;i<beforePlays.length;i++) {
 console.log('PASS: 12 icon presses preserve scene and do not restart voice or animal audio');
 ctx.close=()=>{};ctx.testApi.closeGame({preventDefault(){},stopPropagation(){}});advance(3000);assert.equal(voices().length,0);
 console.log('PASS: 40 immediate scene/voice switches without advancing time, one voice at a time, close cancels playback');
+
 

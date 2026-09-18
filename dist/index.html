@@ -364,8 +364,16 @@
         *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
       }
     </style>
+  <link rel="stylesheet" href="./dj.css" />
   </head>
   <body>
+    <section id="modeMenu" class="mode-menu">
+      <div class="mode-card"><span class="menu-star">🌈</span><p>Oi Bela, vamos trabalhar?</p><h1>Vamos brincar de quê?</h1>
+      <div class="mode-options"><button id="chooseToy">🦁<strong>Bichinhos e princesas</strong><small>Teclas, carinho e descobertas · 1</small></button><button id="chooseDj">🎧<strong>DJ Bela</strong><small>Misture bichinhos e batidas · 2</small></button></div>
+      <p class="menu-tip">Toque em um modo para começar</p></div>
+    </section>
+    <section id="djMode" hidden></section>
+    <button id="backModes" class="back-modes" hidden>← Modos</button>
     <main class="toy" id="toy" aria-label="Brinquedo de teclado da Bela">
       <header class="topbar">
         <div class="brand" aria-label="Brinquedo da Bela">
@@ -422,6 +430,7 @@
         const closeButton = document.getElementById('closeButton');
         const closed = document.getElementById('closed');
 
+        window.belaMode = 'menu';
         let audioContext;
         let master;
         let started = false;
@@ -722,6 +731,8 @@
 
         function play(event) {
           if (closedState) return;
+          if (window.belaMode === 'menu') { if (event.key === '1') chooseMode('toy'); if (event.key === '2') chooseMode('dj'); return; }
+          if (window.belaMode === 'dj') { if (!event.repeat) window.belaDJ?.key(event); return; }
           if (event.repeat) { playTypingSound(); return; }
           cancelSpeech();
           ensureAudio();
@@ -868,7 +879,7 @@
         // Pointerup carries transient user activation on touch browsers.
         // One handler avoids duplicate touch + synthesized mouse events.
         toy.addEventListener('pointerup', event => {
-          if (closedState || event.target.closest('#closeButton, #startGreeting, .effect-buttons') || event.button !== 0) return;
+          if (window.belaMode !== 'toy' || closedState || event.target.closest('#closeButton, #startGreeting, .effect-buttons') || event.button !== 0) return;
           ensureAudio();
           requestFullScreen();
           const pool = touchCount % 2 ? princessScenes : animalScenes;
@@ -885,14 +896,27 @@
           requestFullScreen();
           speak('welcome', 'Oi Bela, vamos trabalhar?');
         });
-        // Try on launch; browsers may require the explicit greeting button.
-        const greetingGeneration = speechGeneration;
-        activeVoice = voiceSamples.welcome;
-        speaking = true;
-        activeVoice.onended = () => { if (greetingGeneration === speechGeneration) speaking = false; };
-        activeVoice.play().catch(() => { if (greetingGeneration === speechGeneration) speaking = false; });
+        function chooseMode(mode) {
+          cancelSpeech();
+          window.belaDJ?.stop();
+          if (backgroundMusic) backgroundMusic.pause();
+          window.belaMode = mode;
+          document.getElementById('modeMenu').hidden = mode !== 'menu';
+          document.getElementById('djMode').hidden = mode !== 'dj';
+          document.getElementById('backModes').hidden = mode === 'menu';
+          toy.hidden = mode !== 'toy';
+          if (mode !== 'menu') requestFullScreen();
+          if (mode === 'toy') { ensureAudio(); speak('welcome', 'Oi Bela, vamos trabalhar?'); }
+          if (mode === 'dj') window.belaDJ?.start();
+        }
+        document.getElementById('chooseToy').addEventListener('click', () => chooseMode('toy'));
+        document.getElementById('chooseDj').addEventListener('click', () => chooseMode('dj'));
+        document.getElementById('backModes').addEventListener('click', () => chooseMode('menu'));
+        window.belaClose = closeGame;
+        toy.hidden = true;
       })();
     </script>
+    <script src="./dj.js"></script>
   </body>
 </html>
 
