@@ -6,6 +6,8 @@
     <meta name="theme-color" content="#0a6f75" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Bela" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="Um brinquedo de teclado cheio de bichinhos, sons e carinho para a Bela." />
     <title>Brinquedo da Bela</title>
@@ -39,6 +41,8 @@
       .animal .princess-art { min-height: 0; max-height: 100%; }
 
       button { font: inherit; }
+      .install-guide { max-width: 30rem; margin: .8rem auto 0; font-size: .9rem; line-height: 1.4; color: var(--ink); }
+      .install-guide[hidden] { display: none; }
 
       .toy {
         position: fixed;
@@ -368,6 +372,7 @@
             <p class="eyebrow">Oi, Bela! 👋</p>
             <h1>Vamos<br /><span>brincar?</span></h1>
             <p class="prompt"><span class="prompt-kbd" aria-hidden="true">⌨</span> Aperte qualquer tecla</p>
+            <p class="install-guide" id="installGuide" hidden><strong>Instalar no iPhone</strong><br />No Safari, toque em Compartilhar → Adicionar à Tela de Início. Ative “Abrir como App da Web”, se aparecer, e toque em Adicionar.</p>
           </div>
         </div>
 
@@ -415,6 +420,11 @@
         let feminineVoice = null;
         let touchCount = 0;
         const touchScreen = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+        const appleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent)
+          || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const installedMode = matchMedia('(display-mode: standalone)').matches
+          || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+        document.getElementById('installGuide').hidden = !appleMobile || installedMode;
         if (touchScreen) {
           document.querySelector('.prompt').textContent = 'Toque na tela para brincar';
           document.querySelector('.hint').textContent = 'Toque na tela • para sair, toque no ×';
@@ -643,6 +653,7 @@
         }
 
         function requestFullScreen() {
+          if (installedMode) return;
           if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
           }
