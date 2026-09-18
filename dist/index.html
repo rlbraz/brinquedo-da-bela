@@ -727,6 +727,14 @@
           if (closedState) return;
           // A held key must not keep postponing the next scene indefinitely.
           if (event.repeat) { playTypingSound(); return; }
+          // Update the next choice without restarting the countdown. Continuous
+          // typing must still advance the toy every two seconds.
+          if (!event.ready && transitionTimer !== null) {
+            pendingEvent = { key: event.key, code: event.code, scene: event.scene, ready: true };
+            playTypingSound();
+            keyBubble.textContent = labelForKey(event);
+            return;
+          }
           // Start inside the original user gesture so browsers unlock the audio.
           if (!event.ready && started && (speaking || transitionTimer !== null)) {
             cancelSpeech();
