@@ -291,12 +291,13 @@
         pointer-events: none;
         animation: sparkle .8s ease-out forwards;
       }
-      .effect-buttons { display: flex; justify-content: center; gap: clamp(.6rem, 3vw, 1.3rem); padding: .6rem 1rem 1rem; z-index: 10; }
-      .effect-button { width: clamp(3.3rem, 13vw, 4.5rem); height: clamp(3.3rem, 13vw, 4.5rem); border: 3px solid white; border-radius: 1.2rem; background: #ff9bb6; box-shadow: 0 5px 0 #bb536f; font-size: 2rem; cursor: pointer; touch-action: manipulation; }
+      .effect-buttons { display: flex; justify-content: center; gap: clamp(.4rem, 2vw, 1.3rem); padding: .6rem .6rem 1rem; z-index: 10; }
+      .effect-button { flex: 0 0 auto; display: grid; place-items: center; width: clamp(3.8rem, 21vw, 7rem); height: clamp(3.8rem, 21vw, 7rem); border: 3px solid white; border-radius: 1.4rem; background: #ff9bb6; box-shadow: 0 5px 0 #bb536f; font-size: clamp(2.5rem, 10vw, 3.8rem); cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
       .effect-button:active { transform: translateY(4px); box-shadow: 0 1px 0 #bb536f; }
       .effect-button[data-effect="stars"] { background: #ffe17a; }
       .effect-button[data-effect="flowers"] { background: #bcecc6; }
       .effect-button[data-effect="bubbles"] { background: #a4e4ff; }
+      .bubble-art, .effect-particle.bubble-art { display: block; width: 1em; height: 1em; border: 2px solid #fff; border-radius: 50%; background: radial-gradient(circle at 30% 25%, white 0 9%, transparent 14%), radial-gradient(circle at 65% 75%, #f6acdf88, #45c8f655 65%); box-shadow: inset -3px -4px 7px #3198bc66, 0 0 0 1px #318aad; }
       .effect-particle { position: fixed; z-index: 9; pointer-events: none; font-size: clamp(1.5rem, 5vw, 2.8rem); animation: effect-float 1.5s ease-out forwards; }
       @keyframes effect-float { from { opacity: 1; transform: translate(-50%, 0) scale(.6); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), var(--dy)) rotate(var(--spin)) scale(1.3); } }
       .key-bubble { position: static; min-width: 0; height: auto; border: 0; background: none; box-shadow: none; color: var(--ink); font-size: 1rem; transform: none; padding: .3rem; }
@@ -396,7 +397,7 @@
         <button class="effect-button" data-effect="hearts" aria-label="Soltar corações" tabindex="-1">💗</button>
         <button class="effect-button" data-effect="stars" aria-label="Soltar estrelas" tabindex="-1">⭐</button>
         <button class="effect-button" data-effect="flowers" aria-label="Soltar flores" tabindex="-1">🌸</button>
-        <button class="effect-button" data-effect="bubbles" aria-label="Soltar bolhas" tabindex="-1">🫧</button>
+        <button class="effect-button" data-effect="bubbles" aria-label="Soltar bolhas" tabindex="-1"><span class="bubble-art" aria-hidden="true"></span></button>
       </div>
       <p class="hint">Aperte qualquer tecla • para sair, clique no ×</p>
     </main>
@@ -829,7 +830,12 @@
         });
 
         window.addEventListener('contextmenu', event => event.preventDefault());
-        let lastEffectAt = -Infinity;
+        function effectSfx(kind) {
+          if (kind === 'hearts') { tone(440,.16,'sine',0,660,.2); tone(550,.2,'sine',.1,880,.15); }
+          if (kind === 'stars') { [1047,1568,2093].forEach((f,i) => tone(f,.22,'sine',i*.055,f,.14)); }
+          if (kind === 'flowers') { tone(660,.22,'triangle',0,990,.12); tone(880,.25,'sine',.09,1320,.15); }
+          if (kind === 'bubbles') { [0,.08,.16].forEach((t,i) => tone(550+i*170,.085,'sine',t,140+i*60,.25)); }
+        }
         const effectStyles = {
           hearts: { icon: '💗', notes: [523, 659, 784] },
           stars: { icon: '⭐', notes: [1047, 1319, 1568] },
@@ -837,19 +843,23 @@
           bubbles: { icon: '🫧', notes: [330, 660, 440] }
         };
         document.querySelectorAll('.effect-button').forEach(button => {
-          button.addEventListener('click', event => {
+          button.addEventListener('pointerdown', event => {
             event.stopPropagation();
-            if (closedState || performance.now() - lastEffectAt < 100) return;
-            lastEffectAt = performance.now();
+            if (closedState || event.button !== 0) return;
+            event.preventDefault();
             ensureAudio();
             const effect = effectStyles[button.dataset.effect];
-            effect.notes.forEach((note, i) => tone(note, .18, 'sine', i * .08, button.dataset.effect === 'bubbles' ? note * 1.8 : note, .1));
+            effectSfx(button.dataset.effect);
+            // Keep rapid taps responsive without accumulating hundreds of elements.
+            const existing = document.querySelectorAll('.effect-particle');
+            for (let i = 0; i < existing.length - 90; i++) existing[i].remove();
             const rect = button.getBoundingClientRect();
             for (let i = 0; i < 10; i++) {
               const particle = document.createElement('span');
               particle.className = 'effect-particle';
               particle.setAttribute('aria-hidden', 'true');
-              particle.textContent = effect.icon;
+              if (button.dataset.effect === 'bubbles') particle.classList.add('bubble-art');
+              else particle.textContent = effect.icon;
               particle.style.left = `${rect.left + rect.width / 2}px`;
               particle.style.top = `${rect.top}px`;
               particle.style.setProperty('--dx', `${(Math.random() - .5) * Math.min(innerWidth, 650)}px`);
