@@ -12,9 +12,9 @@ script=script.replace('      })();','        window.testApi = {play, closeGame};
 vm.runInNewContext(script,ctx);
 function advance(ms){now+=ms;for(const [i,t] of [...timers])if(t.at<=now){timers.delete(i);t.f()}}
 const voices=()=>audios.filter(a=>a.src.includes('voice-girl')&&!a.paused);
-ctx.testApi.play({key:'a',code:'KeyA'});advance(1999);assert.equal(voices().length,0);advance(1);assert.equal(voices().length,1);
+ctx.testApi.play({key:'a',code:'KeyA'});assert.equal(voices().length,1);assert(voices()[0].src.endsWith('lion_1.mp3'));
 ctx.testApi.play({key:'s',code:'KeyS'});assert.equal(voices().length,0);advance(1000);
-ctx.testApi.play({key:'d',code:'KeyD'});advance(1999);assert.equal(voices().length,0);advance(1);
+ctx.testApi.play({key:'d',code:'KeyD'});advance(1000);ctx.testApi.play({key:'d',code:'KeyD',repeat:true});advance(999);assert.equal(voices().length,0);advance(1);
 assert.equal(voices().length,1);assert(voices()[0].src.endsWith('lion_2.mp3'));
 ctx.testApi.play({key:'f',code:'KeyF'});ctx.close=()=>{};ctx.testApi.closeGame({preventDefault(){},stopPropagation(){}});advance(3000);assert.equal(voices().length,0);
-console.log('PASS: immediate cancellation, 2-second delay, last input wins, close cancels pending speech');
+console.log('PASS: first key starts immediately, immediate cancellation, 2-second delay, held key does not postpone, last input wins, close cancels pending speech');

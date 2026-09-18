@@ -725,7 +725,10 @@
 
         function play(event) {
           if (closedState) return;
-          if (!event.ready) {
+          // A held key must not keep postponing the next scene indefinitely.
+          if (event.repeat) { playTypingSound(); return; }
+          // Start inside the original user gesture so browsers unlock the audio.
+          if (!event.ready && started && (speaking || transitionTimer !== null)) {
             cancelSpeech();
             pendingEvent = { key: event.key, code: event.code, scene: event.scene, ready: true };
             ensureAudio();
