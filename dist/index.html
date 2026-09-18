@@ -401,6 +401,10 @@
         let lastPress = 0;
         let activeSample = null;
         let activeVoice = null;
+        let speaking = false;
+        let pendingEvent = null;
+        let currentScene = null;
+        let backgroundMusic = null;
         let feminineVoice = null;
 
         const sampleSources = {
@@ -426,6 +430,7 @@
           const audio = new Audio(`./voice-ai/${name}.mp3`);
           audio.preload = 'auto';
           audio.volume = .92;
+          audio.playbackRate = .82;
           return [name, audio];
         }));
 
@@ -461,22 +466,25 @@
           { icon: '🐰', voice: 'bunny_1', text: 'O coelhinho pulou bem alto!', colors: ['#ffd4e4', '#d6c5ff', '#fff0b0'], sound: rainbow },
           { icon: '🐰', voice: 'bunny_2', text: 'Focinho fofinho e orelhas compridas!', colors: ['#ffd5e4', '#c8e0ff', '#fff1c4'], sound: rainbow },
           { icon: '🐰', voice: 'bunny_3', text: 'O coelhinho trouxe uma cenoura!', colors: ['#ffd3df', '#c8e8da', '#ffe6a4'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'belina_1', text: 'A princesa Belina trouxe um coração para a Bela!', colors: ['#ffb1c0', '#f28c9b', '#ffe6a3'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'belina_2', text: 'Belina abriu as portas do castelo encantado!', colors: ['#ffb7c4', '#ef9da4', '#ffe6aa'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'estela_1', text: 'A princesa Estela acendeu as estrelas!', colors: ['#8c96e6', '#4c5eb5', '#ffd875'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'estela_2', text: 'Estela encontrou uma estrela brilhante!', colors: ['#9aa2ed', '#5964bd', '#ffde7d'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'marina_1', text: 'A princesa Marina dança com as ondas!', colors: ['#85e2e5', '#4db8cd', '#d5f0c0'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'marina_2', text: 'Marina encontrou uma concha azul!', colors: ['#8fe5e8', '#55bdd1', '#d4efc2'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'flora_1', text: 'A princesa Flora fez o jardim florescer!', colors: ['#9bdda1', '#5abf86', '#fff0a2'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'flora_2', text: 'Flora trouxe uma flor cheirosa para a Bela!', colors: ['#a8e4a8', '#6ac58a', '#ffed9b'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'celina_1', text: 'A princesa Celina iluminou o céu!', colors: ['#ffe38d', '#f5b35f', '#b8e7ed'], sound: rainbow },
-          { icon: '👸', image: princessArt, voice: 'celina_2', text: 'Celina convidou a Bela para o baile!', colors: ['#ffe69a', '#f6bd6c', '#bde7ec'], sound: rainbow },
+          { icon: '👸', image: './princesa-belina.png', princessName: 'Belina', voice: 'belina_1', text: 'A princesa Belina trouxe um coração para a Bela!', colors: ['#ffb1c0', '#f28c9b', '#ffe6a3'], sound: rainbow },
+          { icon: '👸', image: './princesa-belina.png', princessName: 'Belina', voice: 'belina_2', text: 'A princesa Belina abriu as portas do castelo encantado!', colors: ['#ffb7c4', '#ef9da4', '#ffe6aa'], sound: rainbow },
+          { icon: '👸', image: './princesa-estela.png', princessName: 'Estela', voice: 'estela_1', text: 'A princesa Estela acendeu as estrelas!', colors: ['#8c96e6', '#4c5eb5', '#ffd875'], sound: rainbow },
+          { icon: '👸', image: './princesa-estela.png', princessName: 'Estela', voice: 'estela_2', text: 'A princesa Estela encontrou uma estrela brilhante!', colors: ['#9aa2ed', '#5964bd', '#ffde7d'], sound: rainbow },
+          { icon: '👸', image: './princesa-marina.png', princessName: 'Marina', voice: 'marina_1', text: 'A princesa Marina dança com as ondas!', colors: ['#85e2e5', '#4db8cd', '#d5f0c0'], sound: rainbow },
+          { icon: '👸', image: './princesa-marina.png', princessName: 'Marina', voice: 'marina_2', text: 'A princesa Marina encontrou uma concha azul!', colors: ['#8fe5e8', '#55bdd1', '#d4efc2'], sound: rainbow },
+          { icon: '👸', image: './princesa-flora.png', princessName: 'Flora', voice: 'flora_1', text: 'A princesa Flora fez o jardim florescer!', colors: ['#9bdda1', '#5abf86', '#fff0a2'], sound: rainbow },
+          { icon: '👸', image: './princesa-flora.png', princessName: 'Flora', voice: 'flora_2', text: 'A princesa Flora trouxe uma flor cheirosa para a Bela!', colors: ['#a8e4a8', '#6ac58a', '#ffed9b'], sound: rainbow },
+          { icon: '👸', image: './princesa-celina.png', princessName: 'Celina', voice: 'celina_1', text: 'A princesa Celina iluminou o céu!', colors: ['#ffe38d', '#f5b35f', '#b8e7ed'], sound: rainbow },
+          { icon: '👸', image: './princesa-celina.png', princessName: 'Celina', voice: 'celina_2', text: 'A princesa Celina convidou a Bela para o baile!', colors: ['#ffe69a', '#f6bd6c', '#bde7ec'], sound: rainbow },
           { icon: '🌈', voice: 'rainbow', text: 'Um arco-íris colorido para a Bela!', colors: ['#ffb3c2', '#9edff0', '#ffe47a'], sound: rainbow },
           { icon: '🌧️', voice: 'rain', text: 'Chuvinha gostosa no jardim!', colors: ['#9fd9ff', '#8ec8e8', '#d9f4ff'], sample: 'nature', sound: rain },
           { icon: '🌊', voice: 'ocean', text: 'O mar faz shhh, shhh, shhh!', colors: ['#7edbe8', '#66bde8', '#bff3df'], sample: 'nature', sound: ocean },
           { icon: '✨', voice: 'stars', text: 'As estrelinhas estão dançando!', colors: ['#b7b2ff', '#7fcbe5', '#ffe083'], sound: rainbow },
           { icon: '🌼', voice: 'garden', text: 'O jardim mágico acordou, Bela!', colors: ['#a7e5b2', '#7dd4c4', '#ffe48a'], sound: rainbow }
         ];
+
+        const animalScenes = scenes.filter(scene => !scene.princessName);
+        const princessScenes = scenes.filter(scene => scene.princessName);
 
         function ensureAudio() {
           if (!audioContext) {
@@ -488,6 +496,12 @@
             master.connect(audioContext.destination);
           }
           if (audioContext.state === 'suspended') audioContext.resume();
+          if (!backgroundMusic) {
+            backgroundMusic = new Audio('./sounds/nature.mp3');
+            backgroundMusic.loop = true;
+            backgroundMusic.volume = .055;
+          }
+          backgroundMusic.play().catch(() => {});
         }
 
         function tone(freq, duration, type = 'sine', offset = 0, endFreq = freq, volume = .24) {
@@ -587,20 +601,30 @@
           speechSynthesis.speak(utterance);
         }
 
-        function speak(voiceKey, text) {
-          if ('speechSynthesis' in window) speechSynthesis.cancel();
-          if (activeVoice) {
-            activeVoice.pause();
-            activeVoice.currentTime = 0;
+        function finishSpeech() {
+          speaking = false;
+          if (pendingEvent) {
+            const next = pendingEvent;
+            pendingEvent = null;
+            window.setTimeout(() => play(next), 80);
           }
+        }
+
+        function speak(voiceKey, text) {
           const voice = voiceSamples[voiceKey];
           if (!voice) {
+            speaking = true;
             fallbackSpeech(text);
+            window.setTimeout(finishSpeech, Math.max(1800, text.length * 95));
             return;
           }
+          speaking = true;
           activeVoice = voice;
+          voice.onended = finishSpeech;
+          voice.onerror = finishSpeech;
           voice.currentTime = 0;
-          voice.play().catch(() => fallbackSpeech(text));
+          voice.playbackRate = .82;
+          voice.play().catch(() => { fallbackSpeech(text); window.setTimeout(finishSpeech, Math.max(1800, text.length * 95)); });
         }
 
         function requestFullScreen() {
@@ -632,18 +656,42 @@
           }
         }
 
+        function playTypingSound() {
+          ensureAudio();
+          tone(820, .045, 'triangle', 0, 560, .045);
+          tone(1150, .035, 'sine', .025, 820, .028);
+        }
+
+        function sceneForEvent(event) {
+          const key = String(event?.key || '').toLowerCase();
+          if (/^[1-9]$/.test(key) || key === '0') { const n = key === '0' ? 10 : Number(key); return princessScenes[(n - 1) % princessScenes.length]; }
+          const letters = 'asdfghjklçqwertyuiopzxcvbnm';
+          const pos = letters.indexOf(key);
+          if (pos >= 0) {
+            const pool = pos % 2 === 1 ? princessScenes : animalScenes;
+            return pool[Math.floor(pos / 2) % pool.length];
+          }
+          const code = String(event?.code || '');
+          const sum = [...code].reduce((n, c) => n + c.charCodeAt(0), 0);
+          return (sum % 2) ? princessScenes[sum % princessScenes.length] : animalScenes[sum % animalScenes.length];
+        }
+
         function play(event) {
           if (closedState) return;
+          if (speaking) {
+            pendingEvent = event;
+            playTypingSound();
+            keyBubble.textContent = labelForKey(event);
+            return;
+          }
           const now = performance.now();
           if (event.repeat && now - lastPress < 115) return;
           lastPress = now;
           ensureAudio();
           requestFullScreen();
 
-          let index = Math.abs((event.code || event.key || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % scenes.length;
-          if (index === lastIndex) index = (index + 1) % scenes.length;
-          lastIndex = index;
-          const scene = scenes[index];
+          const scene = sceneForEvent(event);
+          currentScene = scene;
 
           if (!started) {
             started = true;
@@ -652,7 +700,7 @@
           }
 
           if (scene.image) {
-            animal.innerHTML = `<img class="princess-art" src="${scene.image}" alt="Princesas originais da Bela" />`;
+            animal.innerHTML = `<img class="princess-art" src="${scene.image}" alt="${scene.princessName}" />`;
           } else {
             animal.textContent = scene.icon;
           }
@@ -664,7 +712,7 @@
           reaction.classList.add('pop');
           playSceneSound(scene);
           setTimeout(() => {
-            if (!closedState && message.textContent === scene.text) speak(scene.voice, scene.text);
+            if (!closedState && currentScene === scene) speak(scene.voice, scene.text);
           }, scene.sample ? 260 : 120);
           sparkle();
         }
@@ -682,6 +730,7 @@
             activeVoice.pause();
             activeVoice.currentTime = 0;
           }
+          if (backgroundMusic) { backgroundMusic.pause(); backgroundMusic.currentTime = 0; }
           if (audioContext) audioContext.suspend();
           if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
           if (window.belaDesktop) {
@@ -750,3 +799,6 @@
     </script>
   </body>
 </html>
+
+
+

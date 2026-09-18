@@ -43,15 +43,15 @@ PHRASES = {
     "bunny_2": "Focinho fofinho e orelhas compridas!",
     "bunny_3": "O coelhinho trouxe uma cenoura!",
     "belina_1": "A princesa Belina trouxe um coração para a Bela!",
-    "belina_2": "Belina abriu as portas do castelo encantado!",
+    "belina_2": "A princesa Belina abriu as portas do castelo encantado!",
     "estela_1": "A princesa Estela acendeu as estrelas!",
-    "estela_2": "Estela encontrou uma estrela brilhante!",
+    "estela_2": "A princesa Estela encontrou uma estrela brilhante!",
     "marina_1": "A princesa Marina dança com as ondas!",
-    "marina_2": "Marina encontrou uma concha azul!",
+    "marina_2": "A princesa Marina encontrou uma concha azul!",
     "flora_1": "A princesa Flora fez o jardim florescer!",
-    "flora_2": "Flora trouxe uma flor cheirosa para a Bela!",
+    "flora_2": "A princesa Flora trouxe uma flor cheirosa para a Bela!",
     "celina_1": "A princesa Celina iluminou o céu!",
-    "celina_2": "Celina convidou a Bela para o baile!",
+    "celina_2": "A princesa Celina convidou a Bela para o baile!",
     "rainbow": "Um arco-íris colorido para a Bela!",
     "rain": "Chuvinha gostosa no jardim!",
     "ocean": "O mar faz shhh, shhh, shhh!",
@@ -78,7 +78,7 @@ def main() -> None:
             samples, sample_rate = kokoro.create(
                 phrase,
                 voice="pf_dora",
-                speed=0.92,
+                speed=0.78,
                 lang="pt-br",
             )
             wav_path = temp_path / f"{name}.wav"
@@ -105,3 +105,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
