@@ -1,6 +1,6 @@
 (() => {
   const root = document.getElementById('djMode');
-  const padAnimals=[['Cachorro','🐶','dog'],['Gato','🐱','cat'],['Vaca','🐮','cow'],['Pato','🦆','geese'],['Passarinho','🐤','bird'],['Coruja','🦉','owl'],['Leão','🦁','lion'],['Sapo','🐸','fantasy'],['Elefante','🐘','fantasy'],['Coelhinho','🐰','fantasy'],['Cavalo','🐴','fantasy'],['Golfinho','🐬','ocean'],['Pintinho','🐥','bird'],['Macaco','🐵','fantasy'],['Urso','🐻','fantasy'],['Lobo','🐺','fantasy']];
+  const padAnimals=[['Cachorro','🐶','dog'],['Gato','🐱','cat'],['Vaca','🐮','cow'],['Pato','🦆','geese'],['Passarinho','🐤','bird'],['Coruja','🦉','owl'],['Leão','🦁','lion'],['Sapo','🐸','bird'],['Elefante','🐘','owl'],['Galo','🐓','bird'],['Cavalo','🐴','cow'],['Golfinho','🐬','nature'],['Pintinho','🐥','bird'],['Macaco','🐵','owl'],['Urso','🐻','lion'],['Lobo','🐺','dog']];
   const colors=['#ff858e','#ffc875','#fff18a','#8af0bd','#81dcff','#b8a0ff','#ffa6d6','#75eddf'];
   const keys='asdfghjkqwertyui';
   const deck=(side,title,animal)=>`<section class="deck ${side}"><h2>${title}</h2><button class="jog" data-side="${side}" aria-label="Jog ${title}: scratch de DJ"><span>${animal}</span></button><div class="pads">${Array.from({length:8},(_,i)=>{const a=padAnimals[i+(side==='right'?8:0)];return `<button class="pad" data-pad="${i+(side==='right'?8:0)}" style="--pad:${colors[i]}" aria-label="${title} ${a[0]}">${a[1]}<small>${a[0]} · ${keys[i+(side==='right'?8:0)].toUpperCase()}</small></button>`}).join('')}</div></section>`;
@@ -14,7 +14,16 @@
   function status(text){root.querySelector('.dj-status').textContent=text;}
   function fx(i){if(!active)return;audio();if(i===0)note(180,.5,'triangle',0,1100,.22);if(i===1)[1047,1568,2093].forEach((f,n)=>note(f,.3,'sine',n*.09));if(i===2)[0,.09,.18].forEach(t=>note(800,.09,'sine',t,130,.3));if(i===3)hiss(.7,0,.22);status(['Uau! 🚀','Brilho! 💫','Plop, plop! 💧','Fuuu! 🌪️'][i]);}
   const animals={left:[['dog','🐶'],['cat','🐱'],['cow','🐮'],['geese','🦆']],right:[['lion','🦁'],['bird','🐤'],['owl','🦉']]};let counts={left:0,right:0};
-  function jog(side,rate=1){if(!active)return;audio();const duration=.12+.14*Math.min(1.6,Math.abs(rate));hiss(duration,0,.28);note(rate<0?95:165,duration,'sawtooth',0,rate<0?55:420,.12);note(rate<0?180:280,duration*.6,'triangle',.015,rate<0?90:650,.08);const disc=root.querySelector(`[data-side="${side}"] .jog`);disc.classList.add('scratch');setTimeout(()=>disc.classList.remove('scratch'),180);status('Scratch! 🎚️');}
+  function scratch(rate=1){
+    const duration=.09+.11*Math.min(1.8,Math.abs(rate));
+    const frames=Math.floor(ctx.sampleRate*duration),buffer=ctx.createBuffer(1,frames,ctx.sampleRate),data=buffer.getChannelData(0);
+    for(let i=0;i<frames;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/frames,.35);
+    const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+    filter.type='bandpass';filter.frequency.setValueAtTime(rate<0?420:1250,ctx.currentTime);filter.frequency.exponentialRampToValueAtTime(rate<0?180:2200,ctx.currentTime+duration);filter.Q.value=1.4;
+    gain.gain.setValueAtTime(.001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.38,ctx.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
+    src.buffer=buffer;src.playbackRate.value=rate<0?.72:1.28;src.connect(filter).connect(gain).connect(master);src.start();src.stop(ctx.currentTime+duration);oscillators.add(src);src.onended=()=>oscillators.delete(src);
+  }
+  function jog(side,rate=1){if(!active)return;audio();scratch(rate);note(rate<0?92:176,.12,'sawtooth',0,rate<0?45:520,.08);const disc=root.querySelector(`[data-side="${side}"] .jog`);disc.classList.add('scratch');setTimeout(()=>disc.classList.remove('scratch'),180);status('Scratch! 🎚️');}
   function scheduler(){if(!active)return;while(nextBeat<ctx.currentTime+.12){const t=Math.max(0,nextBeat-ctx.currentTime);note(130,.2,'sine',t,42,.4,music);hiss(.04,t,.05,music);hiss(.035,t+60/128/2,.04,music);if(beat%2===1)hiss(.13,t,.13,music);const bass=[130.81,130.81,164.81,146.83,110,110,146.83,123.47][beat%8];note(bass,.28,'triangle',t,bass,.11,music);if(beat%2===0)note(bass*4,.3,'sine',t,bass*4,.06,music);nextBeat+=60/128;beat++;}root.querySelector('.beat-light').classList.toggle('pulse',Math.floor(ctx.currentTime/(60/128))%2===0);}
   function start(){audio();active=true;nextBeat=ctx.currentTime;beat=0;clearInterval(timer);scheduler();timer=setInterval(scheduler,25);}
   function stop(){active=false;clearInterval(timer);for(const a of samples)a.pause();samples.clear();for(const o of oscillators){try{o.stop()}catch{}}oscillators.clear();}
