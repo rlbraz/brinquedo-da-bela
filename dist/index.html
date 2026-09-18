@@ -842,8 +842,6 @@
             event.preventDefault();
             ensureAudio();
             const effect = effectStyles[button.dataset.effect];
-            const nextIndex = (scenes.indexOf(currentScene) + 1) % scenes.length;
-            play({ key: effect.icon, code: 'Effect', scene: scenes[nextIndex] });
             effectSfx(button.dataset.effect);
             // Keep rapid taps responsive without accumulating hundreds of elements.
             const existing = document.querySelectorAll('.effect-particle');
