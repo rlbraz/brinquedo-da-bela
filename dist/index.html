@@ -49,7 +49,7 @@
         inset: 0;
         isolation: isolate;
         display: grid;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: auto 1fr auto auto;
         min-height: 100dvh;
         overflow: hidden;
         color: var(--ink);
@@ -291,6 +291,15 @@
         pointer-events: none;
         animation: sparkle .8s ease-out forwards;
       }
+      .effect-buttons { display: flex; justify-content: center; gap: clamp(.6rem, 3vw, 1.3rem); padding: .6rem 1rem 1rem; z-index: 10; }
+      .effect-button { width: clamp(3.3rem, 13vw, 4.5rem); height: clamp(3.3rem, 13vw, 4.5rem); border: 3px solid white; border-radius: 1.2rem; background: #ff9bb6; box-shadow: 0 5px 0 #bb536f; font-size: 2rem; cursor: pointer; touch-action: manipulation; }
+      .effect-button:active { transform: translateY(4px); box-shadow: 0 1px 0 #bb536f; }
+      .effect-button[data-effect="stars"] { background: #ffe17a; }
+      .effect-button[data-effect="flowers"] { background: #bcecc6; }
+      .effect-button[data-effect="bubbles"] { background: #a4e4ff; }
+      .effect-particle { position: fixed; z-index: 9; pointer-events: none; font-size: clamp(1.5rem, 5vw, 2.8rem); animation: effect-float 1.5s ease-out forwards; }
+      @keyframes effect-float { from { opacity: 1; transform: translate(-50%, 0) scale(.6); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), var(--dy)) rotate(var(--spin)) scale(1.3); } }
+      .key-bubble { position: static; min-width: 0; height: auto; border: 0; background: none; box-shadow: none; color: var(--ink); font-size: 1rem; transform: none; padding: .3rem; }
 
       .hint {
         justify-self: center;
@@ -383,6 +392,12 @@
         </div>
       </section>
 
+      <div class="effect-buttons" role="group" aria-label="Sons e figuras">
+        <button class="effect-button" data-effect="hearts" aria-label="Soltar corações" tabindex="-1">💗</button>
+        <button class="effect-button" data-effect="stars" aria-label="Soltar estrelas" tabindex="-1">⭐</button>
+        <button class="effect-button" data-effect="flowers" aria-label="Soltar flores" tabindex="-1">🌸</button>
+        <button class="effect-button" data-effect="bubbles" aria-label="Soltar bolhas" tabindex="-1">🫧</button>
+      </div>
       <p class="hint">Aperte qualquer tecla • para sair, clique no ×</p>
     </main>
 
@@ -814,12 +829,43 @@
         });
 
         window.addEventListener('contextmenu', event => event.preventDefault());
+        let lastEffectAt = -Infinity;
+        const effectStyles = {
+          hearts: { icon: '💗', notes: [523, 659, 784] },
+          stars: { icon: '⭐', notes: [1047, 1319, 1568] },
+          flowers: { icon: '🌸', notes: [659, 784, 988] },
+          bubbles: { icon: '🫧', notes: [330, 660, 440] }
+        };
+        document.querySelectorAll('.effect-button').forEach(button => {
+          button.addEventListener('click', event => {
+            event.stopPropagation();
+            if (closedState || performance.now() - lastEffectAt < 100) return;
+            lastEffectAt = performance.now();
+            ensureAudio();
+            const effect = effectStyles[button.dataset.effect];
+            effect.notes.forEach((note, i) => tone(note, .18, 'sine', i * .08, button.dataset.effect === 'bubbles' ? note * 1.8 : note, .1));
+            const rect = button.getBoundingClientRect();
+            for (let i = 0; i < 10; i++) {
+              const particle = document.createElement('span');
+              particle.className = 'effect-particle';
+              particle.setAttribute('aria-hidden', 'true');
+              particle.textContent = effect.icon;
+              particle.style.left = `${rect.left + rect.width / 2}px`;
+              particle.style.top = `${rect.top}px`;
+              particle.style.setProperty('--dx', `${(Math.random() - .5) * Math.min(innerWidth, 650)}px`);
+              particle.style.setProperty('--dy', `${-(100 + Math.random() * innerHeight * .65)}px`);
+              particle.style.setProperty('--spin', `${(Math.random() - .5) * 80}deg`);
+              document.body.appendChild(particle);
+              setTimeout(() => particle.remove(), 1600);
+            }
+          });
+        });
         closeButton.addEventListener('pointerdown', event => event.stopPropagation());
         closeButton.addEventListener('click', closeGame);
         // Pointerup carries transient user activation on touch browsers.
         // One handler avoids duplicate touch + synthesized mouse events.
         toy.addEventListener('pointerup', event => {
-          if (closedState || event.target.closest('#closeButton') || event.button !== 0) return;
+          if (closedState || event.target.closest('#closeButton, .effect-buttons') || event.button !== 0) return;
           ensureAudio();
           requestFullScreen();
           const pool = touchCount % 2 ? princessScenes : animalScenes;
