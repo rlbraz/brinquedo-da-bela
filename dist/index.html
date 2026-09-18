@@ -431,6 +431,9 @@
         let activeVoice = null;
         let speaking = false;
         let pendingEvent = null;
+        let transitionTimer = null;
+        let voiceTimer = null;
+        let speechGeneration = 0;
         let currentScene = null;
         let backgroundMusic = null;
         let feminineVoice = null;
@@ -467,10 +470,10 @@
 
         const voiceKeys = ['welcome', 'lion_1', 'lion_2', 'lion_3', 'dog_1', 'dog_2', 'dog_3', 'cat_1', 'cat_2', 'cat_3', 'cow_1', 'cow_2', 'cow_3', 'frog_1', 'frog_2', 'frog_3', 'bird_1', 'bird_2', 'bird_3', 'duck_1', 'duck_2', 'duck_3', 'elephant_1', 'elephant_2', 'elephant_3', 'owl_1', 'owl_2', 'owl_3', 'bunny_1', 'bunny_2', 'bunny_3', 'belina_1', 'belina_2', 'estela_1', 'estela_2', 'marina_1', 'marina_2', 'flora_1', 'flora_2', 'celina_1', 'celina_2', 'rainbow', 'rain', 'ocean', 'stars', 'garden'];
         const voiceSamples = Object.fromEntries(voiceKeys.map(name => {
-          const audio = new Audio(`./voice-ai/${name}.mp3`);
+          const audio = new Audio(`./voice-girl/${name}.mp3`);
           audio.preload = 'auto';
           audio.volume = .92;
-          audio.playbackRate = .82;
+          audio.playbackRate = 1;
           return [name, audio];
         }));
 
@@ -629,43 +632,44 @@
             || null;
         }
 
-        function fallbackSpeech(text) {
-          if (!('speechSynthesis' in window)) return;
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'pt-BR';
-          utterance.rate = .9;
-          utterance.pitch = 1.12;
-          utterance.volume = .9;
-          if (!feminineVoice) chooseFeminineVoice();
-          if (feminineVoice) utterance.voice = feminineVoice;
-          speechSynthesis.speak(utterance);
-        }
-
-        function finishSpeech() {
-          if (closedState) return;
-          speaking = false;
-          if (pendingEvent) {
-            const next = pendingEvent;
-            pendingEvent = null;
-            play(next);
+        function cancelSpeech() {
+          speechGeneration++;
+          clearTimeout(voiceTimer);
+          clearTimeout(transitionTimer);
+          transitionTimer = null;
+          pendingEvent = null;
+          if (activeVoice) {
+            activeVoice.onended = activeVoice.onerror = null;
+            activeVoice.pause();
+            activeVoice.currentTime = 0;
           }
+          if (activeSample) { activeSample.pause(); activeSample.currentTime = 0; }
+          if ('speechSynthesis' in window) speechSynthesis.cancel();
+          speaking = false;
         }
 
         function speak(voiceKey, text) {
+          const generation = speechGeneration;
+          const done = () => { if (generation === speechGeneration) speaking = false; };
+          const fallback = () => {
+            if (closedState || generation !== speechGeneration) return;
+            if (!('speechSynthesis' in window)) { done(); return; }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.rate = .95;
+            utterance.pitch = 1.55;
+            if (feminineVoice) utterance.voice = feminineVoice;
+            utterance.onend = utterance.onerror = done;
+            speechSynthesis.speak(utterance);
+          };
           const voice = voiceSamples[voiceKey];
-          if (!voice) {
-            speaking = true;
-            fallbackSpeech(text);
-            window.setTimeout(finishSpeech, Math.max(1800, text.length * 95));
-            return;
-          }
           speaking = true;
+          if (!voice) { fallback(); return; }
           activeVoice = voice;
-          voice.onended = finishSpeech;
-          voice.onerror = finishSpeech;
+          voice.onended = done;
           voice.currentTime = 0;
-          voice.playbackRate = .82;
-          voice.play().catch(() => { fallbackSpeech(text); window.setTimeout(finishSpeech, Math.max(1800, text.length * 95)); });
+          voice.playbackRate = 1;
+          voice.play().catch(fallback);
         }
 
         function requestFullScreen() {
@@ -721,10 +725,19 @@
 
         function play(event) {
           if (closedState) return;
-          if (speaking) {
-            pendingEvent = event;
+          if (!event.ready) {
+            cancelSpeech();
+            pendingEvent = { key: event.key, code: event.code, scene: event.scene, ready: true };
+            ensureAudio();
+            requestFullScreen();
             playTypingSound();
             keyBubble.textContent = labelForKey(event);
+            transitionTimer = setTimeout(() => {
+              const next = pendingEvent;
+              pendingEvent = null;
+              transitionTimer = null;
+              if (next && !closedState) play(next);
+            }, 2000);
             return;
           }
           const now = performance.now();
@@ -755,9 +768,7 @@
           void reaction.offsetWidth;
           reaction.classList.add('pop');
           playSceneSound(scene);
-          setTimeout(() => {
-            if (!closedState && currentScene === scene) speak(scene.voice, scene.text);
-          }, scene.sample ? 260 : 120);
+          speak(scene.voice, scene.text);
           sparkle();
         }
 
@@ -765,6 +776,7 @@
           event.preventDefault();
           event.stopPropagation();
           closedState = true;
+          cancelSpeech();
           if ('speechSynthesis' in window) speechSynthesis.cancel();
           if (activeSample) {
             activeSample.pause();
@@ -849,6 +861,8 @@
             event.preventDefault();
             ensureAudio();
             const effect = effectStyles[button.dataset.effect];
+            const nextIndex = (scenes.indexOf(currentScene) + 1) % scenes.length;
+            play({ key: effect.icon, code: 'Effect', scene: scenes[nextIndex] });
             effectSfx(button.dataset.effect);
             // Keep rapid taps responsive without accumulating hundreds of elements.
             const existing = document.querySelectorAll('.effect-particle');
