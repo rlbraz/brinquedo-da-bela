@@ -1,0 +1,11 @@
+{
+  "id": "/",
+  "name": "Brinquedo da Bela",
+  "short_name": "Bela",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#0a6f75",
+  "theme_color": "#0a6f75"
+}
